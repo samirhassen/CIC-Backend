@@ -29,7 +29,9 @@ namespace CIC.API.DTO
         public string AuthorityUri { get; set; } = string.Empty;
         public string ReportId { get; set; } = string.Empty;
         public string TenantId {get; set; } = string.Empty;
+
         public string ClientId { get; set; } = string.Empty;
+
         public string ClientSecret { get; set; } = string.Empty;
         public string Granttype { get; set; } = string.Empty;
         public string Scope { get; set; } = string.Empty;
@@ -39,7 +41,6 @@ namespace CIC.API.DTO
         public string ApiUrl { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
         public string DataSets { get; set; } = string.Empty;
-        public string WorkSpaceId { get; set; } = string.Empty;
         public string SecurityPassword {  get; set; } = string.Empty;
         public string FilterName { get; set; } = string.Empty;
         public bool FilterPaneEnabled {  get; set; } = false;

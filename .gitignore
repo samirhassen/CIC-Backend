@@ -5,3 +5,4 @@
 /.vs
 /CIC.API/bin/Debug/net9.0
 /CIC.API/obj
+/CIC.API/bin/Release/net9.0

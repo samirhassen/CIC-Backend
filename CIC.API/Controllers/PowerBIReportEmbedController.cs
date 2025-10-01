@@ -30,10 +30,10 @@ namespace CIC.API.Controllers
                 var user = Newtonsoft.Json.JsonConvert.DeserializeObject<AuthTokenResponse>(tokenResponse.Body.AuthenticateTokenResult);
                 if (user?.pa_token != null)
                 {
-                    var roleNames = user.pa_webroles.Select(r => r.Name).ToList();                    
+                    var roleNames = user.account.cic_ipeds;               
                     EmbeddedReportConfig embeddedReportConfig = null;
                     string reportId = PowerBISettings.ReportId;
-                    embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames.ToArray(), user.emailaddress1);
+                    embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, user.emailaddress1);
                     //Before sending config , apply companyid filter
                     embeddedReportConfig.EmbedUrl = string.Format("{0}&filter={1} eq {2}&filterPaneEnabled={3}", embeddedReportConfig.EmbedUrl, PowerBISettings.FilterName, "1", Convert.ToString(PowerBISettings.FilterPaneEnabled).ToLower());
                     embeddedReportConfig.ShowReport = true;

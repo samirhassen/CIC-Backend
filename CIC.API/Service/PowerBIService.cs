@@ -48,7 +48,7 @@ namespace CIC.API.Service
         }
 
 
-        public async Task<EmbeddedReportConfig> GetEmbedReportConfig(Guid reportId, string[] roleName,string emailaddress1)
+        public async Task<EmbeddedReportConfig> GetEmbedReportConfig(Guid reportId, string roleName,string emailaddress1)
         {
             //Get Authentication Token from Azure
             var accessToken = await AuthenticateAsync();
@@ -69,22 +69,22 @@ namespace CIC.API.Service
             return config;
         }
 
-        public async Task<EmbedToken> GenerateEmbedToken(string token, string[] roleName, string emailaddress1)
+        public async Task<EmbedToken> GenerateEmbedToken(string token, string roleName, string emailaddress1)
         {
-            string requestUrl = $"https://api.powerbi.com/v1.0/myorg/groups/{PowerBISetting.WorkSpaceId}/reports/{PowerBISetting.ReportId}/GenerateToken";
+            string requestUrl = $"https://api.powerbi.com/v1.0/myorg/groups/{PowerBISetting.GroupId}/reports/{PowerBISetting.ReportId}/GenerateToken";
 
             var requestBody = new
             {
                 accessLevel = "View",
-                identities = new[]
-                {
-                    new
-                    {
-                        userName= "",
-                        roles=new []{ "InstitutionFilter" },
-                        datasets=new []{ PowerBISetting.DataSets }
-                    }
-                }
+                //identities = new[]
+                //{
+                //    new
+                //    {
+                //        userName= emailaddress1,
+                //        roles=new []{ roleName },                      
+                //        datasets=new []{ PowerBISetting.DataSets }                        
+                //    }
+                //}
             };
             #region Dynamic Request
             //var requestBody = new
@@ -111,11 +111,15 @@ namespace CIC.API.Service
             httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             var response = await _httpClient.SendAsync(httpRequest);
             string result = await response.Content.ReadAsStringAsync();
-            var embedToken = System.Text.Json.JsonSerializer.Deserialize<EmbedToken>(result, new JsonSerializerOptions
+            if(!string.IsNullOrEmpty(result))
             {
-                PropertyNameCaseInsensitive = true
-            });
-            return embedToken;
+                var embedToken = System.Text.Json.JsonSerializer.Deserialize<EmbedToken>(result, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                return embedToken;
+            }
+            return null;            
         }
     }
 }
