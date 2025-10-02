@@ -1,0 +1,17 @@
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevent overall scroll */
+}
+
+app-header,
+app-footer,
+app-quick-search {
+  flex-shrink: 0;
+}
+
+.content {
+  flex: 1 1 auto;
+  overflow-y: hidden; /* Optional: Only scroll this if needed */
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}

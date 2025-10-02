@@ -1,0 +1,43 @@
+.login-center-container {
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  background: #e4e4e4;
+}
+
+.login-card {
+  width: 370px;
+  padding: 40px 30px 30px 30px;
+  text-align: center;
+ background-color: #fff;
+}
+
+.logo-container {
+  margin-bottom: 36px;
+}
+.logo-container img {
+  max-width: 260px;
+  margin: 0 auto;
+  display: block;
+}
+
+.microsoft-btn {
+  margin-top: 60px;
+  width: 100%;
+  background-color: #043673;
+  font-weight: 400;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* adds spacing between icon and text */
+}
+
+.microsoft-btn .ms-icon {
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+  margin-right: 8px;
+    color: #fff;
+}

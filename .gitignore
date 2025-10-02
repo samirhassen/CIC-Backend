@@ -6,3 +6,7 @@
 /CIC.API/bin/Debug/net9.0
 /CIC.API/obj
 /CIC.API/bin/Release/net9.0
+/CIC.API/wwwroot/3rdpartylicenses.txt
+/CIC.API/wwwroot/browser
+/CIC.API/wwwroot/prerendered-routes.json
+/CIC.API/wwwroot/server

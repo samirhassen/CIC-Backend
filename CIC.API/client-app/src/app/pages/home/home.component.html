@@ -1,0 +1,36 @@
+<!-- <iframe title="01-Population"
+        src="https://app.powerbi.com/reportEmbed?reportId=9ce6168d-28b9-408b-acbb-25e545c8c8bf&autoAuth=true&ctid=a7ebe94e-a4a0-41cf-9678-ea7c92f7500e"
+        frameborder="1" [width]="screenWidth"
+        [height]="screenHeight"></iframe> -->
+
+
+
+
+
+
+        <!-- 
+        <div #embedContainer 
+        [style.width.px]="screenWidth" 
+        [style.height.px]="screenHeight">
+     <powerbi-report 
+       [embedConfig]="embedConfig">
+     </powerbi-report>
+   </div> -->
+   
+   
+
+   <!-- 🔹 Fullscreen Loader -->
+<div *ngIf="loading" class="overlay">
+  <mat-progress-spinner
+    mode="indeterminate"
+    diameter="60"
+    color="primary">
+  </mat-progress-spinner>
+</div>
+
+<!-- PowerBI Embed Container -->
+<div #embedContainer 
+     [style.width.px]="screenWidth" 
+     [style.height.px]="screenHeight">
+  <powerbi-report [embedConfig]="embedConfig"></powerbi-report>
+</div>

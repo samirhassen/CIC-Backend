@@ -4,8 +4,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
+using Microsoft.AspNetCore.SpaServices;
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddSpaStaticFiles(config =>
+{
+    config.RootPath = "wwwroot"; // Angular build output
+});
+
 
 // CORS
 builder.Services.AddCors(options =>
@@ -105,6 +112,20 @@ app.UseCors("AllowAngular");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
+app.UseSpaStaticFiles();
+
+// Configure SPA
+app.UseSpa(spa =>
+{
+    spa.Options.SourcePath = "client-app";
+
+    if (app.Environment.IsDevelopment())
+    {
+        spa.UseProxyToSpaDevelopmentServer("http://localhost:4200"); // Angular dev server
+    }
+});
+
 app.MapGet("/api/secure-data", () => "This is protected API").RequireAuthorization();
 app.MapControllers();
 app.Run();
