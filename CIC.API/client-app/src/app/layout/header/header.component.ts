@@ -12,29 +12,21 @@ import { headerService } from './header-service';
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent {
-constructor(private router: Router,private hearderService: headerService) {}
+  constructor(private router: Router, private hearderService: headerService) { }
 
-
-logout(): void {
-
-  this.hearderService.getLogOut().subscribe({
-    next: (res: any) => {
-      console.log('Logout success:', res);
-
-      // Clear local storage/session storage
-      localStorage.removeItem('token');
-      sessionStorage.clear();
-
-      // Redirect to login page
-      this.router.navigate(['/']);
-    },
-    error: (err: any) => {
-      console.error('Logout failed:', err);    
-      localStorage.removeItem('token');
-      sessionStorage.clear();
-      this.router.navigate(['/']);
-    }
-  });
-}
-
+  logout(): void {
+    this.hearderService.getLogOut().subscribe({
+      next: (res: any) => {
+        localStorage.removeItem('token');
+        sessionStorage.clear();
+        this.router.navigate(['/']);
+      },
+      error: (err: any) => {
+        console.error('Logout failed:', err);
+        localStorage.removeItem('token');
+        sessionStorage.clear();
+        this.router.navigate(['/']);
+      }
+    });
+  }
 }

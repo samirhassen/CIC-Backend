@@ -3,13 +3,13 @@ export interface EnvironmentConfiguration {
     production: boolean;
     apiUrl: string;
     apiEndpoints: {
-        userProfile: string;      
+        userProfile: string;
     },
     adConfig: {
         clientId: string;
-        tenantId:string;
+        tenantId: string;
         readScopeUrl: string;
-        scopeUrls:string[];
+        scopeUrls: string[];
         writeScopeUrl: string;
         apiEndpointUrl: string;
     }

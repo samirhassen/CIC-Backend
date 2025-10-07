@@ -5,26 +5,20 @@
         </div>
 
         <form #loginForm="ngForm" (ngSubmit)="login()" fxLayout="column" fxLayoutGap="15px">
-            <!-- Username -->
-            <!-- Username -->
             <mat-form-field appearance="outline" style="width: 100%;">
                 <mat-label>Username</mat-label>
                 <input matInput name="username" [(ngModel)]="username" required email #usernameCtrl="ngModel"
                     placeholder="Enter Username" />
 
-                <!-- Required validation -->
                 <mat-error *ngIf="usernameCtrl.errors?.['required'] && usernameCtrl.touched">
                     Username is required
                 </mat-error>
 
-                <!-- Email format validation -->
                 <mat-error *ngIf="usernameCtrl.errors?.['email'] && usernameCtrl.touched">
                     Please enter a valid email address
                 </mat-error>
             </mat-form-field>
 
-
-            <!-- Password -->
             <mat-form-field appearance="outline" style="width: 100%;">
                 <mat-label>Password</mat-label>
                 <input matInput type="password" name="password" [(ngModel)]="password" required #passwordCtrl="ngModel"
@@ -34,20 +28,15 @@
                 </mat-error>
             </mat-form-field>
 
-            <!-- Login Button -->
-            <!-- <button mat-raised-button color="primary" style="width: 100%;" type="submit" [disabled]="loginForm.invalid">
-                Login
-            </button> -->
-
-            <button mat-raised-button color="primary" style="width: 100%;" type="submit" [disabled]="loginForm.invalid || loading">
+            <button mat-raised-button color="primary" style="width: 100%;" type="submit"
+                [disabled]="loginForm.invalid || loading">
                 <ng-container *ngIf="!loading; else loadingTemplate">
-                  Login
+                    Login
                 </ng-container>
                 <ng-template #loadingTemplate>
-                  <mat-progress-spinner diameter="24" mode="indeterminate" color="primary"></mat-progress-spinner>
+                    <mat-progress-spinner diameter="24" mode="indeterminate" color="primary"></mat-progress-spinner>
                 </ng-template>
-              </button>
-              
+            </button>
         </form>
     </mat-card>
 </div>

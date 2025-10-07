@@ -8,23 +8,6 @@ using Microsoft.AspNetCore.SpaServices;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddSpaStaticFiles(config =>
-{
-    config.RootPath = "wwwroot"; // Angular build output
-});
-
-
-// CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAngular", policy =>
-    {
-        policy.WithOrigins("http://localhost:4200")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
-
 var config = builder.Configuration;
 var tenantId = config["AzureAd:TenantId"];
 var audience = config["AzureAd:Audience"];
@@ -45,6 +28,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true
         };
     });
+builder.Services.AddCors();
 
 // Authorization
 builder.Services.AddAuthorization();
@@ -94,6 +78,7 @@ builder.Services.AddScoped<CRM4MServiceReference.AuthenticationWebServiceSoap>(s
 builder.Services.AddScoped<ICICCRM4MAuthenticationService,CICCRM4MAuthenticationService>();
 builder.Services.AddScoped<HttpClient>();
 
+
 var app = builder.Build();
 
 // Swagger UI
@@ -108,24 +93,14 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 }
 
 // Middleware
-app.UseCors("AllowAngular");
+
+app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
-app.UseSpaStaticFiles();
 
-// Configure SPA
-app.UseSpa(spa =>
-{
-    spa.Options.SourcePath = "client-app";
-
-    if (app.Environment.IsDevelopment())
-    {
-        spa.UseProxyToSpaDevelopmentServer("http://localhost:4200"); // Angular dev server
-    }
-});
-
-app.MapGet("/api/secure-data", () => "This is protected API").RequireAuthorization();
+//app.MapGet("/api/secure-data", () => "This is protected API").RequireAuthorization();
 app.MapControllers();
 app.Run();

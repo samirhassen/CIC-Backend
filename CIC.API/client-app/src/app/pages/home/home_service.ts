@@ -6,22 +6,17 @@ import { ConstantRoute } from '../../ConstantsRoutes';
 
 @Injectable({ providedIn: 'root' })
 export class homeService {
-  //private apiURL = 'https://localhost:7181';
 
-  private apiURL =ConstantRoute.API_URL;
+  private apiURL = ConstantRoute.API_URL;
   private getReportURL = this.apiURL + '/api/PowerBIReportEmbed/getReport';
   private getAuthenticateTokenURL = this.apiURL + '/authenticateToken';
 
-  constructor(private http: HttpClient) {}
-
-  // getReport(): Observable<any> {
-  //   return this.http.get<any>(this.getReportURL);
-  // }
+  constructor(private http: HttpClient) { }
 
   getReport(): Observable<any> {
     const token = localStorage.getItem('token') ?? '';
     const params = new HttpParams().set('token', token);
-  
+
     return this.http.get<any>(this.getReportURL, { params });
   }
 

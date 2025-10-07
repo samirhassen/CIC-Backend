@@ -21,7 +21,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatInputModule,
     MatFormFieldModule,
     MatCardModule,
-    MatProgressSpinnerModule 
+    MatProgressSpinnerModule
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './authentication.component.html',
@@ -29,37 +29,32 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 })
 export class AuthenticationComponent {
 
-  constructor(private snackBar: MatSnackBar,private authService: AuthenticationServices,private router: Router) {}
+  constructor(private snackBar: MatSnackBar, private authService: AuthenticationServices, private router: Router) { }
   username: string = '';
   password: string = '';
-  loading:boolean = false;
+  loading: boolean = false;
 
 
   login(): void {
     if (this.username && this.password) {
       this.loading = true;
-      console.log('Login clicked:', this.username, this.password);
       this.authService.getAuthentication(this.username, this.password).subscribe({
         next: (res: any) => {
-          console.log('✅ Login success:', res);
           this.loading = false;
-
           if (res && res.pa_token) {
             localStorage.setItem('token', res.pa_token);
-
             this.router.navigate(['/home'], { queryParams: { token: res.pa_token } });
           }
-          else
-          {
+          else {
             this.loading = false;
             this.snackBar.open(ConstantRoute.authenticateUser, '', {
-              duration: 5000, 
+              duration: 5000,
               horizontalPosition: 'right',
               verticalPosition: 'bottom',
               panelClass: ['snackbar-error']
             });
           }
-        },        
+        },
       });
     }
   }

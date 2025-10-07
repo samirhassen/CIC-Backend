@@ -20,6 +20,9 @@
             "outputPath": "../wwwroot",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            "allowedCommonJsDependencies": [
+              "powerbi-client"
+            ],
             "polyfills": [
               "zone.js"
             ],
@@ -33,12 +36,7 @@
               "@angular/material/prebuilt-themes/indigo-pink.css",
               "src/styles.scss"
             ],
-            "scripts": [],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
-            "ssr": {
-              "entry": "src/server.ts"
-            }
+            "scripts": []
           },
           "configurations": {
             "production": {
@@ -85,6 +83,9 @@
             "polyfills": [
               "zone.js",
               "zone.js/testing"
+            ],
+            "allowedCommonJsDependencies": [
+              "powerbi-client"
             ],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",

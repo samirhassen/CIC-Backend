@@ -13,7 +13,6 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay()),
     provideHttpClient(),
     provideNativeDateAdapter(),
-   //importProvidersForm()
   ]
 };
 

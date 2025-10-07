@@ -76,15 +76,15 @@ namespace CIC.API.Service
             var requestBody = new
             {
                 accessLevel = "View",
-                //identities = new[]
-                //{
-                //    new
-                //    {
-                //        userName= emailaddress1,
-                //        roles=new []{ roleName },                      
-                //        datasets=new []{ PowerBISetting.DataSets }                        
-                //    }
-                //}
+                identities = new[]
+                {
+                    new
+                    {
+                        userName= emailaddress1,
+                        roles=new []{ roleName },
+                        datasets=new []{ PowerBISetting.DataSets }
+                    }
+                }
             };
             #region Dynamic Request
             //var requestBody = new
