@@ -39,8 +39,10 @@ export class HomeComponent implements OnInit {
 
     if (this.isBrowser) {
       this.route.queryParams.subscribe((params: { [x: string]: any }) => {
-        const token = params['token'];
+        const token = params['Token'];
+       
         if (token) {
+          console.log("Token Found");
           this.securityToken = token;
           this.homeService.getAuthenticateToken(token).subscribe({
             next: (res: any) => {
@@ -58,7 +60,8 @@ export class HomeComponent implements OnInit {
                 }, 2000);
               }
               else {
-                
+                localStorage.setItem('token', res.pa_token);
+
                 this.updateScreenSize();
                 this.loadPowerBIReport();
                 this.loading = false;
@@ -68,6 +71,7 @@ export class HomeComponent implements OnInit {
           });
         }
         else{
+          console.log("Token Not Found");
           window.location.href=ConstantRoute.RedirectUrl;
 
         }
@@ -81,15 +85,16 @@ export class HomeComponent implements OnInit {
       return;
     }
 
-    const cachedReport = this.getCachedReport();
-    const nowUTC = new Date();
-    const expirationUTC = new Date(cachedReport?.expiration);
-    this.getPowerBIReport(); // Fallback to API call
-    if (cachedReport && expirationUTC?.getTime() > nowUTC?.getTime()) {
-      this.embedPowerBIReport(cachedReport);
-    } else {
-      this.getPowerBIReport(); // Fallback to API call
-    }
+    // const cachedReport = this.getCachedReport();
+    // const nowUTC = new Date();
+    // const expirationUTC = new Date(cachedReport?.expiration);
+    // this.getPowerBIReport(); // Fallback to API call
+    // if (cachedReport && expirationUTC?.getTime() > nowUTC?.getTime()) {
+    //   this.embedPowerBIReport(cachedReport);
+    // } else {
+    //   this.getPowerBIReport(); // Fallback to API call
+    // }
+    this.getPowerBIReport(); 
   }
 
 
@@ -101,6 +106,7 @@ export class HomeComponent implements OnInit {
 
   //Bind Report
   private getPowerBIReport(): void {
+    localStorage.setItem('token', this.securityToken);
     this.reportService.getReport(this.securityToken).subscribe({
       next: async (res: any) => {
         if (res) {

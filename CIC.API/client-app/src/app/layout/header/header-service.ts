@@ -12,7 +12,8 @@ export class headerService {
 
   getLogOut(): Observable<any> {
     const token = localStorage.getItem('token') ?? '';
-    const params = new HttpParams().set('token', token);
+    console.log("Logout token:",token);
+    let params = new HttpParams().set('token', token);
     return this.http.get<any>(this.logoutURL, { params });
   }
 }
