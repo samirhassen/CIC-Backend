@@ -6,14 +6,13 @@ import { AuthenticationComponent } from './authentication/authentication.compone
 export const routes: Routes = [
   {
     path: '',
-    component: AuthenticationComponent,
+    component: HomeComponent,
   },
   {
     path: '',
     component: LayoutComponent,
     children: [
       { path: 'home', component: HomeComponent },
-
     ],
   },
   { path: 'authentication', component: AuthenticationComponent }

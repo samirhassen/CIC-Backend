@@ -724,11 +724,11 @@ namespace CRM4MServiceReference
         {
             if ((endpointConfiguration == EndpointConfiguration.Authentication_x0020_Web_x0020_ServiceSoap))
             {
-                return new System.ServiceModel.EndpointAddress("https://cicstagednn1.pcbscloud.com/DesktopModules/MX/Authentication.asmx");
+                return new System.ServiceModel.EndpointAddress("https://my.cic.edu/DesktopModules/MX/Authentication.asmx");
             }
             if ((endpointConfiguration == EndpointConfiguration.Authentication_x0020_Web_x0020_ServiceSoap12))
             {
-                return new System.ServiceModel.EndpointAddress("https://cicstagednn1.pcbscloud.com/DesktopModules/MX/Authentication.asmx");
+                return new System.ServiceModel.EndpointAddress("https://my.cic.edu/DesktopModules/MX/Authentication.asmx");
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }

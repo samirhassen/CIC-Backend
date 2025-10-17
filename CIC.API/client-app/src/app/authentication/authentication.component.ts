@@ -29,7 +29,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 })
 export class AuthenticationComponent {
 
-  constructor(private snackBar: MatSnackBar, private authService: AuthenticationServices, private router: Router) { }
+  constructor(private snackBar: MatSnackBar, private authService: AuthenticationServices, private router: Router) { 
+
+    
+  }
   username: string = '';
   password: string = '';
   loading: boolean = false;

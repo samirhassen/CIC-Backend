@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Router, RouterModule } from '@angular/router';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { headerService } from './header-service';
+import { ConstantRoute } from '../../ConstantsRoutes';
 
 @Component({
   selector: 'app-header',
@@ -17,15 +18,15 @@ export class HeaderComponent {
   logout(): void {
     this.hearderService.getLogOut().subscribe({
       next: (res: any) => {
-        localStorage.removeItem('token');
         sessionStorage.clear();
-        this.router.navigate(['/']);
+        localStorage.clear();
+        window.location.href=ConstantRoute.RedirectUrl;
       },
       error: (err: any) => {
         console.error('Logout failed:', err);
-        localStorage.removeItem('token');
+        localStorage.clear();
         sessionStorage.clear();
-        this.router.navigate(['/']);
+        window.location.href=ConstantRoute.RedirectUrl;
       }
     });
   }

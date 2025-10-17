@@ -69,7 +69,7 @@ namespace CIC.API.Service
             return config;
         }
 
-        public async Task<EmbedToken> GenerateEmbedToken(string token, string roleName, string emailaddress1)
+        public async Task<EmbedToken> GenerateEmbedToken(string token, string userName, string emailaddress1)
         {
             string requestUrl = $"https://api.powerbi.com/v1.0/myorg/groups/{PowerBISetting.GroupId}/reports/{PowerBISetting.ReportId}/GenerateToken";
 
@@ -80,8 +80,8 @@ namespace CIC.API.Service
                 {
                     new
                     {
-                        userName= emailaddress1,
-                        roles=new []{ roleName },
+                        userName= userName,
+                        roles=new []{ "InstitutionAccess" },
                         datasets=new []{ PowerBISetting.DataSets }
                     }
                 }

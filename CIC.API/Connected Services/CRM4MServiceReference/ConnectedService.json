@@ -1,7 +1,7 @@
 {
   "ExtendedData": {
     "inputs": [
-      "https://cicstagednn1.pcbscloud.com/DesktopModules/MX/Authentication.asmx"
+      "https://my.cic.edu/DesktopModules/MX/Authentication.asmx"
     ],
     "collectionTypes": [
       "System.Array",

@@ -13,9 +13,9 @@ export class homeService {
 
   constructor(private http: HttpClient) { }
 
-  getReport(): Observable<any> {
+  getReport(securityToken :string): Observable<any> {
     const token = localStorage.getItem('token') ?? '';
-    const params = new HttpParams().set('token', token);
+    const params = new HttpParams().set('token', securityToken);
 
     return this.http.get<any>(this.getReportURL, { params });
   }
