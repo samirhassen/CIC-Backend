@@ -52,7 +52,7 @@ namespace CIC.API.Service
         {
             //Get Authentication Token from Azure
             var accessToken = await AuthenticateAsync();
-            var embedToken = await GenerateEmbedToken(accessToken, roleName, emailaddress1);
+            var embedToken = await GenerateEmbedToken(accessToken, roleName, emailaddress1, reportId);
             Guid groupId = new Guid(PowerBISetting.GroupId);
             EmbeddedReportConfig config = null;
 
@@ -69,9 +69,9 @@ namespace CIC.API.Service
             return config;
         }
 
-        public async Task<EmbedToken> GenerateEmbedToken(string token, string userName, string emailaddress1)
+        public async Task<EmbedToken> GenerateEmbedToken(string token, string userName, string emailaddress1, Guid reportId)
         {
-            string requestUrl = $"https://api.powerbi.com/v1.0/myorg/groups/{PowerBISetting.GroupId}/reports/{PowerBISetting.ReportId}/GenerateToken";
+            string requestUrl = $"https://api.powerbi.com/v1.0/myorg/groups/{PowerBISetting.GroupId}/reports/{reportId}/GenerateToken";
 
             var requestBody = new
             {

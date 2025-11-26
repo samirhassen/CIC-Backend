@@ -26,13 +26,22 @@ namespace CIC.API.Controllers
             CRM4MServiceReference.AuthenticationWebServiceSoapClient client = new(CRM4MServiceReference.AuthenticationWebServiceSoapClient.EndpointConfiguration.Authentication_x0020_Web_x0020_ServiceSoap);
             var tokenResponse = await client.AuthenticateTokenAsync(PowerBISettings.SecurityPassword, token);
             if (tokenResponse != null)
-            {                
+            {
                 var user = Newtonsoft.Json.JsonConvert.DeserializeObject<AuthTokenResponse>(tokenResponse.Body.AuthenticateTokenResult);
                 if (user?.pa_token != null)
                 {
-                    var roleNames = user.account.cic_ipeds;               
+                    var roleNames = user.account.cic_ipeds;
                     EmbeddedReportConfig embeddedReportConfig = null;
-                    string reportId = PowerBISettings.ReportId;
+                    string reportId = PowerBISettings.ReportIdUserRole;
+
+                    var adminRole = user?.pa_webroles.Where(a => a.Name.ToUpper() == "KIT/FIT ADMIN");
+
+                    if (adminRole?.Count()>0)
+                    {
+                        reportId = PowerBISettings.ReportIdAdminRole;
+                    }
+                   
+
                     embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, user.emailaddress1);
                     //Before sending config , apply companyid filter
                     embeddedReportConfig.EmbedUrl = string.Format("{0}&filter={1} eq {2}&filterPaneEnabled={3}", embeddedReportConfig.EmbedUrl, PowerBISettings.FilterName, "1", Convert.ToString(PowerBISettings.FilterPaneEnabled).ToLower());
@@ -44,7 +53,7 @@ namespace CIC.API.Controllers
                     return Ok("Token is not found");
                 }
             }
-            return Ok();            
-        }       
+            return Ok();
+        }
     }
 }
