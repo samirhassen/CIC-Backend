@@ -137,10 +137,11 @@ export class HomeComponent implements OnInit {
       tokenType: pbi?.models?.TokenType?.Embed,
       settings: {
         panes: {
-          filters: { visible: true },
-          pageNavigation: { visible: true }
+          filters: { visible: false },
+          pageNavigation: { visible: true },         
         }
-      }
+      },
+      pageName : '1. Home'
     };
 
     if (pbi.service) {

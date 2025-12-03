@@ -44,7 +44,7 @@ namespace CIC.API.Controllers
 
                     embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, user.emailaddress1);
                     //Before sending config , apply companyid filter
-                    embeddedReportConfig.EmbedUrl = string.Format("{0}&filter={1} eq {2}&filterPaneEnabled={3}", embeddedReportConfig.EmbedUrl, PowerBISettings.FilterName, "1", Convert.ToString(PowerBISettings.FilterPaneEnabled).ToLower());
+                    embeddedReportConfig.EmbedUrl = string.Format("{0}&filter={1} eq {2}&filterPaneEnabled={3}&pageName={4}", embeddedReportConfig.EmbedUrl, PowerBISettings.FilterName, "1", Convert.ToString(PowerBISettings.FilterPaneEnabled).ToLower(),"1. Home");
                     embeddedReportConfig.ShowReport = true;
                     return Ok(embeddedReportConfig);
                 }

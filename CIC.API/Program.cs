@@ -28,7 +28,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true
         };
     });
-builder.Services.AddCors();
 
 // Authorization
 builder.Services.AddAuthorization();
@@ -77,6 +76,7 @@ builder.Services.AddScoped<CRM4MServiceReference.AuthenticationWebServiceSoap>(s
 });
 builder.Services.AddScoped<ICICCRM4MAuthenticationService,CICCRM4MAuthenticationService>();
 builder.Services.AddScoped<HttpClient>();
+builder.Services.AddCors();
 
 
 var app = builder.Build();
@@ -93,8 +93,10 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 }
 
 // Middleware
-
+//string allowedHost = config["AllowedHost"] ?? "*";
+//app.UseCors(options => options.WithOrigins(allowedHost.Split(",")).AllowAnyMethod().AllowAnyHeader());
 app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

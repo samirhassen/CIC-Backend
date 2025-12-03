@@ -72,37 +72,59 @@ namespace CIC.API.Service
         public async Task<EmbedToken> GenerateEmbedToken(string token, string userName, string emailaddress1, Guid reportId)
         {
             string requestUrl = $"https://api.powerbi.com/v1.0/myorg/groups/{PowerBISetting.GroupId}/reports/{reportId}/GenerateToken";
+            string jsonBody = string.Empty;
 
             var requestBody = new
             {
                 accessLevel = "View",
                 identities = new[]
-                {
-                    new
-                    {
-                        userName= userName,
-                        roles=new []{ "InstitutionAccess" },
-                        datasets=new []{ PowerBISetting.DataSets }
+                  {
+                        new
+                        {
+                            userName= userName,
+                            roles=new []{ "InstitutionAccess" },
+                            datasets=new []{ PowerBISetting.DataSets }
+                        }
                     }
-                }
             };
-            #region Dynamic Request
-            //var requestBody = new
-            //{
-            //    accessLevel = "View",
-            //    identities = new[]
-            //    {
-            //        new
-            //        {
-            //            userName= emailaddress1, //This logged in user email.
-            //            roles=new []{"Member"},
-            //            datasets=new []{ PowerBISetting.DataSets }
-            //        }
-            //    }
-            //};
-            #endregion Dynamic Request
+            jsonBody = System.Text.Json.JsonSerializer.Serialize(requestBody);
 
-            string jsonBody = System.Text.Json.JsonSerializer.Serialize(requestBody);
+            if (reportId == new Guid(PowerBISetting.ReportIdAdminRole))
+            {
+                var requestBody1 = new
+                {
+                    accessLevel = "View",
+                    //identities = new[]
+                    //{
+                    //    new
+                    //    {
+                    //        userName= userName,
+                    //        roles=new []{ "InstitutionAccess" },
+                    //        datasets=new []{ PowerBISetting.DataSets }
+                    //    }
+                    //}
+                };
+               jsonBody = System.Text.Json.JsonSerializer.Serialize(requestBody1);
+            }
+          
+
+                #region Dynamic Request
+                //var requestBody = new
+                //{
+                //    accessLevel = "View",
+                //    identities = new[]
+                //    {
+                //        new
+                //        {
+                //            userName= emailaddress1, //This logged in user email.
+                //            roles=new []{"Member"},
+                //            datasets=new []{ PowerBISetting.DataSets }
+                //        }
+                //    }
+                //};
+                #endregion Dynamic Request
+
+             
             var httpRequest = new HttpRequestMessage(HttpMethod.Post, requestUrl)
             {
                 Content = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json")
