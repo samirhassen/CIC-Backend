@@ -1,5 +1,6 @@
 ﻿using CIC.API.Controllers;
 using CIC.API.DTO;
+using Microsoft.Extensions.Logging;
 using Microsoft.PowerBI.Api.Models;
 using Microsoft.PowerBI.Api;
 using Microsoft.Rest;
@@ -14,10 +15,12 @@ namespace CIC.API.Service
     {
         public PowerBISettings PowerBISetting { get; } = new PowerBISettings();
         private readonly HttpClient _httpClient;
+        private readonly ILogger<PowerBIService> _logger;
         public PowerBIService(IConfiguration configuration, ILogger<PowerBIService> logger, HttpClient httpClient)
         {
             PowerBISetting = configuration.GetSection("PowerBISettings").Get<PowerBISettings>();
             _httpClient = httpClient;
+            _logger = logger;
         }
         private async Task<string> AuthenticateAsync()
         {
@@ -50,23 +53,37 @@ namespace CIC.API.Service
 
         public async Task<EmbeddedReportConfig> GetEmbedReportConfig(Guid reportId, string roleName,string emailaddress1)
         {
-            //Get Authentication Token from Azure
-            var accessToken = await AuthenticateAsync();
-            var embedToken = await GenerateEmbedToken(accessToken, roleName, emailaddress1, reportId);
             Guid groupId = new Guid(PowerBISetting.GroupId);
-            EmbeddedReportConfig config = null;
-
             var embedUrl = "https://app.powerbi.com/reportEmbed?groupId=" + groupId + "&reportId=" + reportId;
-            config = new EmbeddedReportConfig();
-            config.EmbedUrl = embedUrl;
-            config.GroupID = groupId.ToString(); // this we have in config
-            config.WebUrl = embedUrl;  //// this we have in config "https://app.powerbi.com/reportEmbed?groupId=" + groupId + "&reportId=" + reportId;
-            config.ReportID = reportId.ToString();
-            config.Token = embedToken?.Token;
-            config.TokenID = Convert.ToString(embedToken?.TokenId);
-            config.Expiration = embedToken?.Expiration;
-            config.IsExpired = false;
-            return config;
+
+            try
+            {
+                var accessToken = await AuthenticateAsync();
+                var embedToken = await GenerateEmbedToken(accessToken, roleName, emailaddress1, reportId);
+
+                if (embedToken == null || string.IsNullOrWhiteSpace(embedToken.Token))
+                {
+                    _logger.LogError("Power BI embed token not generated for report {ReportId}", reportId);
+                    throw new InvalidOperationException("Power BI embed token generation failed.");
+                }
+
+                return new EmbeddedReportConfig
+                {
+                    EmbedUrl = embedUrl,
+                    GroupID = groupId.ToString(),
+                    WebUrl = embedUrl,
+                    ReportID = reportId.ToString(),
+                    Token = embedToken.Token,
+                    TokenID = Convert.ToString(embedToken.TokenId),
+                    Expiration = embedToken.Expiration,
+                    IsExpired = false
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to build embed configuration for report {ReportId}", reportId);
+                throw;
+            }
         }
 
         public async Task<EmbedToken> GenerateEmbedToken(string token, string userName, string emailaddress1, Guid reportId)
@@ -94,36 +111,10 @@ namespace CIC.API.Service
                 var requestBody1 = new
                 {
                     accessLevel = "View",
-                    //identities = new[]
-                    //{
-                    //    new
-                    //    {
-                    //        userName= userName,
-                    //        roles=new []{ "InstitutionAccess" },
-                    //        datasets=new []{ PowerBISetting.DataSets }
-                    //    }
-                    //}
                 };
                jsonBody = System.Text.Json.JsonSerializer.Serialize(requestBody1);
             }
           
-
-                #region Dynamic Request
-                //var requestBody = new
-                //{
-                //    accessLevel = "View",
-                //    identities = new[]
-                //    {
-                //        new
-                //        {
-                //            userName= emailaddress1, //This logged in user email.
-                //            roles=new []{"Member"},
-                //            datasets=new []{ PowerBISetting.DataSets }
-                //        }
-                //    }
-                //};
-                #endregion Dynamic Request
-
              
             var httpRequest = new HttpRequestMessage(HttpMethod.Post, requestUrl)
             {
@@ -131,8 +122,18 @@ namespace CIC.API.Service
             };
 
             httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            _logger.LogInformation("Requesting Power BI embed token for Report {ReportId}, Dataset {DatasetId}, User {UserName}", reportId, PowerBISetting.DataSets, userName);
+
             var response = await _httpClient.SendAsync(httpRequest);
             string result = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Power BI GenerateToken failed with status {StatusCode} for Report {ReportId}. Response: {Response}", response.StatusCode, reportId, result);
+                throw new InvalidOperationException("Power BI GenerateToken request failed.");
+            }
+
             if(!string.IsNullOrEmpty(result))
             {
                 var embedToken = System.Text.Json.JsonSerializer.Deserialize<EmbedToken>(result, new JsonSerializerOptions
@@ -141,7 +142,9 @@ namespace CIC.API.Service
                 });
                 return embedToken;
             }
-            return null;            
+
+            _logger.LogError("Power BI GenerateToken returned an empty payload for Report {ReportId}", reportId);
+            throw new InvalidOperationException("Power BI GenerateToken returned an empty payload.");
         }
     }
 }
