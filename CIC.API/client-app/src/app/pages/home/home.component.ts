@@ -39,8 +39,11 @@ export class HomeComponent implements OnInit {
 
     if (this.isBrowser) {
       this.route.queryParams.subscribe((params: { [x: string]: any }) => {
-        const token = params['Token'];
-       
+        //On Deployed version. We are getting token param as Token and on development we are getting as token. so need to handle both.
+        var token = params['Token'];
+        if(!token)
+            token = params['token'];  
+
         if (token) {
           console.log("Token Found");
           this.securityToken = token;
