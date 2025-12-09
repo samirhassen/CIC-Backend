@@ -1,6 +1,7 @@
 ﻿using CIC.API.DTO;
 using CIC.API.DTO.ResponseDTO;
 using CIC.API.Service;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CIC.API.Controllers
@@ -12,10 +13,12 @@ namespace CIC.API.Controllers
     {
         public PowerBISettings PowerBISettings { get; } = new PowerBISettings();
         private readonly IPowerBIService _iPowerBIService;
+        private readonly ILogger<PowerBIReportEmbedController> _logger;
         public PowerBIReportEmbedController(IConfiguration configuration, ILogger<PowerBIReportEmbedController> logger, IPowerBIService powerBIService)
         {
             PowerBISettings = configuration.GetSection("PowerBISettings").Get<PowerBISettings>();
             _iPowerBIService = powerBIService;
+            _logger = logger;
         }
 
         [Route("getReport")]
@@ -42,8 +45,22 @@ namespace CIC.API.Controllers
                     }
                    
 
-                    embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, user.emailaddress1);
-                    //Before sending config , apply companyid filter
+                    try
+                    {
+                        embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, user.emailaddress1);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to retrieve embed config for user {Email}", user?.emailaddress1);
+                        return StatusCode(StatusCodes.Status502BadGateway, new { message = "Unable to load Power BI report at this time." });
+                    }
+
+                    if (embeddedReportConfig == null || string.IsNullOrWhiteSpace(embeddedReportConfig.Token))
+                    {
+                        _logger.LogWarning("Embed token missing for user {Email}", user?.emailaddress1);
+                        return StatusCode(StatusCodes.Status502BadGateway, new { message = "Power BI report is temporarily unavailable." });
+                    }
+
                     embeddedReportConfig.EmbedUrl = string.Format("{0}&filter={1} eq {2}&filterPaneEnabled={3}&pageName={4}", embeddedReportConfig.EmbedUrl, PowerBISettings.FilterName, "1", Convert.ToString(PowerBISettings.FilterPaneEnabled).ToLower(),"1. Home");
                     embeddedReportConfig.ShowReport = true;
                     return Ok(embeddedReportConfig);

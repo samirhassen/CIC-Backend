@@ -39,8 +39,11 @@ export class HomeComponent implements OnInit {
 
     if (this.isBrowser) {
       this.route.queryParams.subscribe((params: { [x: string]: any }) => {
-        const token = params['Token'];
-       
+        //On Deployed version. We are getting token param as Token and on development we are getting as token. so need to handle both.
+        var token = params['Token'];
+        if(!token)
+            token = params['token'];  
+
         if (token) {
           console.log("Token Found");
           this.securityToken = token;
@@ -109,23 +112,27 @@ export class HomeComponent implements OnInit {
     localStorage.setItem('token', this.securityToken);
     this.reportService.getReport(this.securityToken).subscribe({
       next: async (res: any) => {
-        if (res) {
+        if (res?.showReport && res?.token) {
           localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(res));
           this.embedPowerBIReport(res); // Use it
         } else {
-          console.error('Invalid report response');
-          this.loading = false;
+          this.handleReportError('The dashboard is temporarily unavailable. Please try again later.');
         }
       },
       error: (err: any) => {
         console.error('Error fetching report:', err);
-        this.loading = false;
+        this.handleReportError('We could not load your dashboard. Please contact support if the problem persists.');
       }
     });
   }
 
   //Bind Report
   private async embedPowerBIReport(report: any): Promise<void> {
+    if (!report?.token) {
+      this.handleReportError('Power BI access token is missing.');
+      return;
+    }
+
     const pbiModule = await import('powerbi-client');
     const pbi = pbiModule.default ?? pbiModule;
 
@@ -155,6 +162,16 @@ export class HomeComponent implements OnInit {
     }
 
     this.loading = false;
+  }
+
+  private handleReportError(message: string): void {
+    this.loading = false;
+    this.snackBar.open(message, '', {
+      duration: 4000,
+      horizontalPosition: 'right',
+      verticalPosition: 'top',
+      panelClass: ['snackbar-error']
+    });
   }
 
   @HostListener('window:resize')
