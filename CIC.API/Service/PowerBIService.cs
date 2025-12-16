@@ -1,13 +1,8 @@
-﻿using CIC.API.Controllers;
-using CIC.API.DTO;
+﻿using CIC.API.DTO;
 using Microsoft.Extensions.Logging;
 using Microsoft.PowerBI.Api.Models;
-using Microsoft.PowerBI.Api;
-using Microsoft.Rest;
 using Newtonsoft.Json;
 using System.Text.Json;
-using System.Text.RegularExpressions;
-using System.Net.Mail;
 
 namespace CIC.API.Service
 {
@@ -18,7 +13,8 @@ namespace CIC.API.Service
         private readonly ILogger<PowerBIService> _logger;
         public PowerBIService(IConfiguration configuration, ILogger<PowerBIService> logger, HttpClient httpClient)
         {
-            PowerBISetting = configuration.GetSection("PowerBISettings").Get<PowerBISettings>();
+            PowerBISetting = configuration.GetSection("PowerBISettings").Get<PowerBISettings>()
+                ?? throw new InvalidOperationException("PowerBISettings configuration is missing.");
             _httpClient = httpClient;
             _logger = logger;
         }
@@ -27,27 +23,29 @@ namespace CIC.API.Service
 
             var authorityUri = $"{PowerBISetting.AuthorityUri}/{PowerBISetting.TenantId}/oauth2/v2.0/token";
 
-            using (var client = new HttpClient())
+            var form = new Dictionary<string, string>
             {
-                var form = new Dictionary<string, string>
-        {
-            {"client_id", PowerBISetting.ClientId },
-            {"scope", PowerBISetting.Scope},
-            {"client_secret", PowerBISetting.ClientSecret },
-            {"grant_type", PowerBISetting.Granttype }
-        };
+                {"client_id", PowerBISetting.ClientId },
+                {"scope", PowerBISetting.Scope},
+                {"client_secret", PowerBISetting.ClientSecret },
+                {"grant_type", PowerBISetting.Granttype }
+            };
 
-                var response = await client.PostAsync(authorityUri, new FormUrlEncodedContent(form));
-                var content = await response.Content.ReadAsStringAsync();
+            var response = await _httpClient.PostAsync(authorityUri, new FormUrlEncodedContent(form));
+            var content = await response.Content.ReadAsStringAsync();
 
-                if (response.StatusCode != System.Net.HttpStatusCode.OK)
-                {
-                    throw new Exception("Authentication failed: " + content);
-                }
-
-                var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(content);
-                return json["access_token"];
+            if (response.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                throw new Exception("Authentication failed: " + content);
             }
+
+            var json = JsonConvert.DeserializeObject<Dictionary<string, string>>(content);
+            if (json == null || !json.TryGetValue("access_token", out var accessToken))
+            {
+                throw new Exception("Authentication failed: access_token missing.");
+            }
+
+            return accessToken;
         }
 
 
@@ -141,6 +139,11 @@ namespace CIC.API.Service
                 {
                     PropertyNameCaseInsensitive = true
                 });
+                if (embedToken == null)
+                {
+                    _logger.LogError("Power BI GenerateToken returned null payload for Report {ReportId}", reportId);
+                    throw new InvalidOperationException("Power BI GenerateToken returned a null payload.");
+                }
                 return embedToken;
             }
 
