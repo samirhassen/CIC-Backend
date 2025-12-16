@@ -43,7 +43,6 @@ namespace CIC.API.Controllers
                     {
                         reportId = PowerBISettings.ReportIdAdminRole;
                     }
-                   
 
                     try
                     {
