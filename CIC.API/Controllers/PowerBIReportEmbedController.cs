@@ -27,10 +27,6 @@ namespace CIC.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetReport(string token)
         {
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                return BadRequest(new { message = "Token is required." });
-            }
             //if token valid then only execute below code
             CRM4MServiceReference.AuthenticationWebServiceSoapClient client = new(CRM4MServiceReference.AuthenticationWebServiceSoapClient.EndpointConfiguration.Authentication_x0020_Web_x0020_ServiceSoap);
             var tokenResponse = await client.AuthenticateTokenAsync(PowerBISettings.SecurityPassword, token);
@@ -50,8 +46,6 @@ namespace CIC.API.Controllers
                     bool hasAdminRole = roles.Any(r => string.Equals(r.Id, adminRoleId, StringComparison.OrdinalIgnoreCase));
                     bool hasMemberRole = roles.Any(r => string.Equals(r.Id, memberRoleId, StringComparison.OrdinalIgnoreCase));
 
-                    var email = user?.emailaddress1 ?? string.Empty;
-
                     if (hasAdminRole)
                     {
                         reportId = PowerBISettings.ReportIdAdminRole;
@@ -62,29 +56,29 @@ namespace CIC.API.Controllers
                     }
                     else
                     {
-                        _logger.LogWarning("User {Email} missing required admin/member role for PowerBI embed", email);
+                        _logger.LogWarning("User {Email} missing required admin/member role for PowerBI embed", user?.Email);
                         return StatusCode(StatusCodes.Status403Forbidden, new { message = "Power BI report is unavailable for your account." });
                     }
 
                     if (string.IsNullOrWhiteSpace(reportId))
                     {
-                        _logger.LogWarning("ReportId is missing for user {Email}", email);
+                        _logger.LogWarning("ReportId is missing for user {Email}", user?.Email);
                         return StatusCode(StatusCodes.Status502BadGateway, new { message = "Power BI report configuration is incomplete." });
                     }
 
                     try
                     {
-                        embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, email);
+                        embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, user?.Email);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to retrieve embed config for user {Email}", email);
+                        _logger.LogError(ex, "Failed to retrieve embed config for user {Email}", user?.Email);
                         return StatusCode(StatusCodes.Status502BadGateway, new { message = "Unable to load Power BI report at this time." });
                     }
 
                     if (embeddedReportConfig == null || string.IsNullOrWhiteSpace(embeddedReportConfig.Token))
                     {
-                        _logger.LogWarning("Embed token missing for user {Email}", email);
+                        _logger.LogWarning("Embed token missing for user {Email}", user?.Email);
                         return StatusCode(StatusCodes.Status502BadGateway, new { message = "Power BI report is temporarily unavailable." });
                     }
 
