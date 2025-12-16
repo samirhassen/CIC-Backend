@@ -3,6 +3,7 @@ using CIC.API.DTO.ResponseDTO;
 using CIC.API.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace CIC.API.Controllers
 {
@@ -16,7 +17,7 @@ namespace CIC.API.Controllers
         private readonly ILogger<PowerBIReportEmbedController> _logger;
         public PowerBIReportEmbedController(IConfiguration configuration, ILogger<PowerBIReportEmbedController> logger, IPowerBIService powerBIService)
         {
-            PowerBISettings = configuration.GetSection("PowerBISettings").Get<PowerBISettings>();
+            PowerBISettings = configuration.GetSection("PowerBISettings").Get<PowerBISettings>() ?? new PowerBISettings();
             _iPowerBIService = powerBIService;
             _logger = logger;
         }
@@ -33,20 +34,41 @@ namespace CIC.API.Controllers
                 var user = Newtonsoft.Json.JsonConvert.DeserializeObject<AuthTokenResponse>(tokenResponse.Body.AuthenticateTokenResult);
                 if (user?.pa_token != null)
                 {
-                    var roleNames = user.account.cic_ipeds;
-                    EmbeddedReportConfig embeddedReportConfig = null;
+                    var roleNames = user?.account?.cic_ipeds ?? string.Empty;
+                    EmbeddedReportConfig? embeddedReportConfig = null;
                     string reportId = PowerBISettings.ReportIdUserRole;
 
-                    var adminRole = user?.pa_webroles.Where(a => a.Name.ToUpper() == "KIT/FIT ADMIN");
+                    const string adminRoleId = "2ac371cb-6583-f011-b4cc-000d3a1ebf95";
+                    const string memberRoleId = "0cccc989-2842-e311-ac91-00155dfa7702";
 
-                    if (adminRole?.Count()>0)
+                    var roles = user?.pa_webroles ?? new List<PaWebRole>();
+                    bool hasAdminRole = roles.Any(r => string.Equals(r.Id, adminRoleId, StringComparison.OrdinalIgnoreCase));
+                    bool hasMemberRole = roles.Any(r => string.Equals(r.Id, memberRoleId, StringComparison.OrdinalIgnoreCase));
+
+                    if (hasAdminRole)
                     {
                         reportId = PowerBISettings.ReportIdAdminRole;
+                    }
+                    else if (hasMemberRole)
+                    {
+                        reportId = PowerBISettings.ReportIdUserRole;
+                    }
+                    else
+                    {
+                        _logger.LogWarning("User {Email} missing required admin/member role for PowerBI embed", user?.emailaddress1);
+                        return StatusCode(StatusCodes.Status403Forbidden, new { message = "Power BI report is unavailable for your account." });
+                    }
+
+                    if (string.IsNullOrWhiteSpace(reportId))
+                    {
+                        _logger.LogWarning("ReportId is missing for user {Email}", user?.emailaddress1);
+                        return StatusCode(StatusCodes.Status502BadGateway, new { message = "Power BI report configuration is incomplete." });
                     }
 
                     try
                     {
-                        embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, user.emailaddress1);
+                        var email = user?.emailaddress1 ?? string.Empty;
+                        embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, email);
                     }
                     catch (Exception ex)
                     {
