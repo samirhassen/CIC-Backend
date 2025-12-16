@@ -29,6 +29,8 @@ namespace CIC.API.DTO
         public string AuthorityUri { get; set; } = string.Empty;
         public string ReportIdUserRole { get; set; } = string.Empty;
         public string ReportIdAdminRole { get; set; } = string.Empty;
+        public string AdminRoleId { get; set; } = string.Empty;
+        public string MemberRoleId { get; set; } = string.Empty;
 
         public string TenantId {get; set; } = string.Empty;
 

@@ -39,12 +39,9 @@ namespace CIC.API.Controllers
                     EmbeddedReportConfig? embeddedReportConfig = null;
                     string reportId = PowerBISettings.ReportIdUserRole;
 
-                    const string adminRoleId = "2ac371cb-6583-f011-b4cc-000d3a1ebf95";
-                    const string memberRoleId = "0cccc989-2842-e311-ac91-00155dfa7702";
-
                     var roles = user?.pa_webroles ?? new List<PaWebRole>();
-                    bool hasAdminRole = roles.Any(r => string.Equals(r.Id, adminRoleId, StringComparison.OrdinalIgnoreCase));
-                    bool hasMemberRole = roles.Any(r => string.Equals(r.Id, memberRoleId, StringComparison.OrdinalIgnoreCase));
+                    bool hasAdminRole = roles.Any(r => string.Equals(r.Id, PowerBISettings.AdminRoleId, StringComparison.OrdinalIgnoreCase));
+                    bool hasMemberRole = roles.Any(r => string.Equals(r.Id, PowerBISettings.MemberRoleId, StringComparison.OrdinalIgnoreCase));
 
                     if (hasAdminRole)
                     {
