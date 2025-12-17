@@ -3,6 +3,7 @@ using CIC.API.DTO.ResponseDTO;
 using CIC.API.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace CIC.API.Controllers
 {
@@ -16,7 +17,8 @@ namespace CIC.API.Controllers
         private readonly ILogger<PowerBIReportEmbedController> _logger;
         public PowerBIReportEmbedController(IConfiguration configuration, ILogger<PowerBIReportEmbedController> logger, IPowerBIService powerBIService)
         {
-            PowerBISettings = configuration.GetSection("PowerBISettings").Get<PowerBISettings>();
+            PowerBISettings = configuration.GetSection("PowerBISettings").Get<PowerBISettings>()
+                ?? throw new InvalidOperationException("PowerBISettings configuration is missing.");
             _iPowerBIService = powerBIService;
             _logger = logger;
         }
@@ -33,31 +35,50 @@ namespace CIC.API.Controllers
                 var user = Newtonsoft.Json.JsonConvert.DeserializeObject<AuthTokenResponse>(tokenResponse.Body.AuthenticateTokenResult);
                 if (user?.pa_token != null)
                 {
-                    var roleNames = user.account.cic_ipeds;
-                    EmbeddedReportConfig embeddedReportConfig = null;
+                    var roleNames = user?.account?.cic_ipeds ?? string.Empty;
+                    EmbeddedReportConfig? embeddedReportConfig = null;
                     string reportId = PowerBISettings.ReportIdUserRole;
+                    string dataSetId = PowerBISettings.DataSets;
 
-                    var adminRole = user?.pa_webroles.Where(a => a.Name.ToUpper() == "KIT/FIT ADMIN");
+                    var roles = user?.pa_webroles ?? new List<PaWebRole>();
+                    bool hasAdminRole = roles.Any(r => string.Equals(r.Id, PowerBISettings.AdminRoleId, StringComparison.OrdinalIgnoreCase));
+                    bool hasMemberRole = roles.Any(r => string.Equals(r.Id, PowerBISettings.MemberRoleId, StringComparison.OrdinalIgnoreCase));
 
-                    if (adminRole?.Count()>0)
+                    if (hasAdminRole)
                     {
                         reportId = PowerBISettings.ReportIdAdminRole;
+                        dataSetId = PowerBISettings.DataSetsAdmin;
                     }
-                   
+                    else if (hasMemberRole)
+                    {
+                        reportId = PowerBISettings.ReportIdUserRole;
+                        dataSetId = PowerBISettings.DataSets;
+                    }
+                    else
+                    {
+                        _logger.LogWarning("User {Email} missing required admin/member role for PowerBI embed", user?.Email);
+                        return StatusCode(StatusCodes.Status403Forbidden, new { message = "Power BI report is unavailable for your account." });
+                    }
+
+                    if (string.IsNullOrWhiteSpace(reportId))
+                    {
+                        _logger.LogWarning("ReportId is missing for user {Email}", user?.Email);
+                        return StatusCode(StatusCodes.Status502BadGateway, new { message = "Power BI report configuration is incomplete." });
+                    }
 
                     try
                     {
-                        embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, user.emailaddress1);
+                        embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, user?.Email, dataSetId);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to retrieve embed config for user {Email}", user?.emailaddress1);
+                        _logger.LogError(ex, "Failed to retrieve embed config for user {Email}", user?.Email);
                         return StatusCode(StatusCodes.Status502BadGateway, new { message = "Unable to load Power BI report at this time." });
                     }
 
                     if (embeddedReportConfig == null || string.IsNullOrWhiteSpace(embeddedReportConfig.Token))
                     {
-                        _logger.LogWarning("Embed token missing for user {Email}", user?.emailaddress1);
+                        _logger.LogWarning("Embed token missing for user {Email}", user?.Email);
                         return StatusCode(StatusCodes.Status502BadGateway, new { message = "Power BI report is temporarily unavailable." });
                     }
 
@@ -67,10 +88,10 @@ namespace CIC.API.Controllers
                 }
                 else
                 {
-                    return Ok("Token is not found");
+                    return StatusCode(StatusCodes.Status401Unauthorized, new { message = "Authentication failed for the provided token." });
                 }
             }
-            return Ok();
+            return StatusCode(StatusCodes.Status401Unauthorized, new { message = "Authentication failed for the provided token." });
         }
     }
 }

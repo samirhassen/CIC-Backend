@@ -29,6 +29,8 @@ namespace CIC.API.DTO
         public string AuthorityUri { get; set; } = string.Empty;
         public string ReportIdUserRole { get; set; } = string.Empty;
         public string ReportIdAdminRole { get; set; } = string.Empty;
+        public string AdminRoleId { get; set; } = string.Empty;
+        public string MemberRoleId { get; set; } = string.Empty;
 
         public string TenantId {get; set; } = string.Empty;
 
@@ -43,6 +45,7 @@ namespace CIC.API.DTO
         public string ApiUrl { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
         public string DataSets { get; set; } = string.Empty;
+        public string DataSetsAdmin { get; set; } = string.Empty;
         public string SecurityPassword {  get; set; } = string.Empty;
         public string FilterName { get; set; } = string.Empty;
         public bool FilterPaneEnabled {  get; set; } = false;
