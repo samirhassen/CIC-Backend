@@ -38,6 +38,7 @@ namespace CIC.API.Controllers
                     var roleNames = user?.account?.cic_ipeds ?? string.Empty;
                     EmbeddedReportConfig? embeddedReportConfig = null;
                     string reportId = PowerBISettings.ReportIdUserRole;
+                    string dataSetId = PowerBISettings.DataSets;
 
                     var roles = user?.pa_webroles ?? new List<PaWebRole>();
                     bool hasAdminRole = roles.Any(r => string.Equals(r.Id, PowerBISettings.AdminRoleId, StringComparison.OrdinalIgnoreCase));
@@ -46,10 +47,12 @@ namespace CIC.API.Controllers
                     if (hasAdminRole)
                     {
                         reportId = PowerBISettings.ReportIdAdminRole;
+                        dataSetId = PowerBISettings.DataSetsAdmin;
                     }
                     else if (hasMemberRole)
                     {
                         reportId = PowerBISettings.ReportIdUserRole;
+                        dataSetId = PowerBISettings.DataSets;
                     }
                     else
                     {
@@ -65,7 +68,7 @@ namespace CIC.API.Controllers
 
                     try
                     {
-                        embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, user?.Email);
+                        embeddedReportConfig = await _iPowerBIService.GetEmbedReportConfig(new Guid(reportId), roleNames, user?.Email, dataSetId);
                     }
                     catch (Exception ex)
                     {

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.PowerBI.Api.Models;
 using Newtonsoft.Json;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace CIC.API.Service
 {
@@ -49,7 +50,7 @@ namespace CIC.API.Service
         }
 
 
-        public async Task<EmbeddedReportConfig> GetEmbedReportConfig(Guid reportId, string roleName,string email)
+        public async Task<EmbeddedReportConfig> GetEmbedReportConfig(Guid reportId, string roleName, string email, string dataSetId)
         {
             Guid groupId = new Guid(PowerBISetting.GroupId);
             var embedUrl = "https://app.powerbi.com/reportEmbed?groupId=" + groupId + "&reportId=" + reportId;
@@ -57,7 +58,7 @@ namespace CIC.API.Service
             try
             {
                 var accessToken = await AuthenticateAsync();
-                var embedToken = await GenerateEmbedToken(accessToken, roleName, email, reportId);
+                var embedToken = await GenerateEmbedToken(accessToken, roleName, email, reportId, dataSetId);
 
                 if (embedToken == null || string.IsNullOrWhiteSpace(embedToken.Token))
                 {
@@ -84,7 +85,7 @@ namespace CIC.API.Service
             }
         }
 
-        public async Task<EmbedToken> GenerateEmbedToken(string token, string userName, string email, Guid reportId)
+        public async Task<EmbedToken> GenerateEmbedToken(string token, string userName, string email, Guid reportId, string dataSetId)
         {
             string requestUrl = $"https://api.powerbi.com/v1.0/myorg/groups/{PowerBISetting.GroupId}/reports/{reportId}/GenerateToken";
 
@@ -94,27 +95,31 @@ namespace CIC.API.Service
                 _logger.LogWarning("Power BI GenerateToken called without effective user (email/userName) for report {ReportId}", reportId);
             }
 
-            var identities = string.IsNullOrWhiteSpace(effectiveUser)
-                ? Array.Empty<object>()
-                : new object[]
-                {
-                    new
-                    {
-                        userName = effectiveUser,
-                        roles = new []{ "InstitutionAccess" },
-                        //TODO: Add admin dataset if user has admin role
-                        datasets = new []{ PowerBISetting.DataSets }
-                    }
-                };
-
-            // Include identities even for admin reports so RLS can resolve to the caller when required.
             var requestBody = new
             {
                 accessLevel = "View",
-                identities = identities
+                identities = new[]
+                  {
+                        new
+                        {
+                            userName= userName,
+                            roles=new []{ "InstitutionAccess" },
+                            datasets=new []{ PowerBISetting.DataSets }
+                        }
+                    }
             };
-
             var jsonBody = System.Text.Json.JsonSerializer.Serialize(requestBody);
+
+            if (reportId == new Guid(PowerBISetting.ReportIdAdminRole))
+            {
+                var requestBody1 = new
+                {
+                    accessLevel = "View",
+                };
+                jsonBody = System.Text.Json.JsonSerializer.Serialize(requestBody1);
+            }
+
+
 
             var httpRequest = new HttpRequestMessage(HttpMethod.Post, requestUrl)
             {
@@ -123,7 +128,7 @@ namespace CIC.API.Service
 
             httpRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            _logger.LogInformation("Requesting Power BI embed token for Report {ReportId}, Dataset {DatasetId}, EffectiveUser {User}", reportId, PowerBISetting.DataSets, effectiveUser);
+            _logger.LogInformation("Requesting Power BI embed token for Report {ReportId}, Dataset {DatasetId}, EffectiveUser {User}", reportId, dataSetId, effectiveUser);
 
             var response = await _httpClient.SendAsync(httpRequest);
             string result = await response.Content.ReadAsStringAsync();
@@ -134,7 +139,7 @@ namespace CIC.API.Service
                 throw new InvalidOperationException("Power BI GenerateToken request failed.");
             }
 
-            if(!string.IsNullOrEmpty(result))
+            if (!string.IsNullOrEmpty(result))
             {
                 var embedToken = System.Text.Json.JsonSerializer.Deserialize<EmbedToken>(result, new JsonSerializerOptions
                 {

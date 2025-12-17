@@ -5,6 +5,6 @@ namespace CIC.API.Service
 {
     public interface IPowerBIService
     {
-        Task<EmbeddedReportConfig> GetEmbedReportConfig(Guid reportId, string roleName, string email);
+        Task<EmbeddedReportConfig> GetEmbedReportConfig(Guid reportId, string roleName, string email, string datasetId);
     }
 }
