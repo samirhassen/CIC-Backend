@@ -7,7 +7,7 @@ namespace CIC.API.DTO.ResponseDTO
         public string status { get; set; }
         public string pa_webloginname { get; set; }
         [JsonProperty("emailaddress1")]
-        public required string Email { get; set; }
+        public string Email { get; set; }
         public required string contactid { get; set; }
         public bool pa_member { get; set; }
         public required string pa_contactnumber { get; set; }
