@@ -102,6 +102,7 @@ namespace CIC.API.Service
                     {
                         userName = effectiveUser,
                         roles = new []{ "InstitutionAccess" },
+                        //TODO: Add admin dataset if user has admin role
                         datasets = new []{ PowerBISetting.DataSets }
                     }
                 };
